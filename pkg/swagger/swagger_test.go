@@ -13,7 +13,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	swag := New("foo", "my description", "2.2", nil)
+	swag, _ := New("foo", "my description", "2.2", nil)
 
 	assert.Equal(t, "foo", swag.Title)
 	assert.Equal(t, "my description", swag.Description)
@@ -65,7 +65,7 @@ func TestSwagger_path(t *testing.T) {
 				router.New("/", http.MethodGet, func() {}),
 			},
 		}
-		paths := swag.paths()
+		paths, _ := swag.paths()
 		require.Len(t, paths, 1)
 		require.Nil(t, paths["/"].Post)
 		require.Nil(t, paths["/"].Delete)
@@ -114,7 +114,7 @@ func TestSwagger_path(t *testing.T) {
 				},
 			},
 		}
-		paths := swag.paths()
+		paths, _ := swag.paths()
 		require.Len(t, paths, 1)
 		require.Nil(t, paths["/hello/{name}"].Post)
 		require.Nil(t, paths["/hello/{name}"].Delete)
@@ -347,7 +347,7 @@ func TestSwagger_parametersFromModel(t *testing.T) {
 }
 
 func TestSwagger_validateSchema(t *testing.T) {
-	swag := New("foo", "bar", "2.0.0", nil)
+	swag, _ := New("foo", "bar", "2.0.0", nil)
 
 	t.Run("Should return a schema with min and max", func(t *testing.T) {
 		schema, err := swag.validateSchema(int(8), []string{"min=1", "max=10"})

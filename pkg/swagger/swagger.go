@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/fatih/structtag"
@@ -60,7 +61,7 @@ type Swagger struct {
 	validateOptions []validateOption
 }
 
-func New(title, description, version string, routers []*router.Router) *Swagger {
+func New(title, description, version string, routers []*router.Router) (*Swagger, error) {
 	//nolint:exhaustruct,nolintlint
 	swagger := &Swagger{
 		Title:       title,
@@ -77,12 +78,17 @@ func New(title, description, version string, routers []*router.Router) *Swagger 
 			validateMinOption,
 		},
 	}
-	swagger.buildOpenAPI()
+	if err := swagger.buildOpenAPI(); err != nil {
+		return nil, err
+	}
 
-	return swagger
+	return swagger, nil
 }
 
-func (swagger *Swagger) buildOpenAPI() {
+func (swagger *Swagger) buildOpenAPI() error {
+
+	var paths openapi3.Paths
+	var err error
 
 	components := openapi3.NewComponents()
 	components.SecuritySchemes = openapi3.SecuritySchemes{}
@@ -100,10 +106,16 @@ func (swagger *Swagger) buildOpenAPI() {
 		Servers:    swagger.Servers,
 		Components: components,
 	}
-	swagger.OpenAPI.Paths = swagger.paths()
+
+	if paths, err = swagger.paths(); err != nil {
+		return err
+	}
+	swagger.OpenAPI.Paths = paths
+
+	return nil
 }
 
-func (swagger *Swagger) paths() openapi3.Paths {
+func (swagger *Swagger) paths() (openapi3.Paths, error) {
 	paths := make(openapi3.Paths)
 	var ok bool
 	for _, router := range swagger.Routers {
@@ -113,7 +125,7 @@ func (swagger *Swagger) paths() openapi3.Paths {
 		}
 		parameters, err := swagger.parametersFromModel(router.Model)
 		if err != nil {
-			continue
+			return nil, err
 		}
 		//nolint:exhaustruct,nolintlint
 		operation := &openapi3.Operation{
@@ -128,10 +140,11 @@ func (swagger *Swagger) paths() openapi3.Paths {
 		swagger.addPath(paths, router.Method, path, operation)
 	}
 
-	return paths
+	return paths, nil
 }
 
 func (swagger *Swagger) addPath(paths openapi3.Paths, method, path string, operation *openapi3.Operation) {
+	method = strings.ToUpper(method)
 	switch method {
 	case http.MethodGet:
 		paths[path].Get = operation
