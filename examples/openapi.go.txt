@@ -1,0 +1,14 @@
+package examples
+
+// @title Swagger example
+// @version 1.0
+// @description This is a sample server to present a boilerplate api in Go.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name me@me.org
+// @contact.url https://localhost/me
+
+// @license.name apache2
+
+// @host localhost:4242
+// @BasePath /
